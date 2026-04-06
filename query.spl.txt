@@ -1,0 +1,4 @@
+password 
+| rex "for (invalid user )?(?<user>\w+)" 
+| stats count by user 
+| where count > 2
