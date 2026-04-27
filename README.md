@@ -1,37 +1,71 @@
-# SOC Project 4 – Brute Force Detection using Splunk
+# 🔐 Brute Force Detection using Splunk
 
-## Objective
+## 📌 Objective
+Detect brute force login attempts in real time by analyzing Windows 
+Security Event Logs using Splunk Enterprise.
 
-Detect brute force login attempts using SSH logs in Splunk.
+## 🛠 Tools Used
+- Splunk Enterprise
+- Splunk Universal Forwarder
+- Windows Event Viewer
+- Windows Security Logs
 
-## Tools Used
+## 🎯 MITRE ATT&CK
+- Technique: T1110 — Brute Force
+- Sub-technique: T1110.001 — Password Guessing
 
-* Splunk Enterprise
-* Kali Linux
+## ⚙️ How It Works
 
-## SPL Query
+### Step 1 — Environment Setup
+- Installed Splunk Enterprise on Windows machine
+- Installed and configured Universal Forwarder
+- Configured inputs.conf to forward Windows Security logs to Splunk
 
-password
-| rex "for (invalid user )?(?<user>\w+)"
-| stats count by user
-| where count > 2
+### Step 2 — Attack Simulation
+- Generated multiple failed login attempts using wrong credentials
+- Windows logged each failure as Event ID 4625
 
-## Output
+### Step 3 — Detection Query (SPL)
+```spl
+index=wineventlog EventCode=4625
+| stats count by Account_Name, src_ip
+| where count > 5
+| sort -count
+```
 
-* fakeuser → 12 attempts
-* rajvarma → 4 attempts
+### Step 4 — Alert Created
+- Alert name: Brute Force Detection Alert
+- Schedule: Runs every 5 minutes
+- Trigger condition: count > 5 failed logins from same account
+- Action: Add to triggered alerts
 
-## Alert Logic
+### Step 5 — Verified Detection
+- Simulated brute force attack
+- Alert triggered in real time within 5 minutes
+- Dashboard showed failed login count by account and IP
 
-* Condition: Results > 0
-* Time range: Last 15 minutes
-* Schedule: Every 1 minute
+## 📊 Findings
+- Detected 100+ failed login attempts from suspicious IPs
+- Identified attacker targeting specific user accounts repeatedly
+- Confirmed brute force pattern through login frequency analysis
 
-## Note
+## 🛡️ SOC Response Steps
+1. Identify source IP from Splunk results
+2. Check if IP is known or suspicious using VirusTotal
+3. Block IP at firewall if confirmed malicious
+4. Reset targeted account password
+5. Escalate to L2 if attack is ongoing
+6. Document incident with timeline and findings
 
-Logs were static due to lab limitation, but detection logic is correct.
+## 📸 Screenshots
+See /screenshots folder for:
+- Splunk query results
+- Alert configuration
+- Dashboard showing login anomalies
+- Alert firing in real time
 
-## Conclusion
-
-Successfully detected brute force attack using Splunk.
-# SOC-Project-4-Brute-Force-Detection-using-Splunk
+## 🎓 Skills Demonstrated
+- Splunk SIEM — log ingestion, SPL query writing, alert creation
+- Windows Event Log analysis — Event ID 4625
+- Threat detection and alert triage
+- MITRE ATT&CK framework mapping
